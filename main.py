@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import urllib2
 import webapp2
@@ -29,7 +30,7 @@ class MainHandler(webapp2.RequestHandler):
             self.response.write(json.dumps(self.plugin_info))
 
     def create_rating_image(self, rating):
-        img = Image.open("logo.png")
+        img = Image.open("rating_background.png")
         draw = ImageDraw.Draw(img)
         font = ImageFont.truetype("Roboto-Bold.ttf", 20)
         draw.text((30, 0), rating + " out of 5", (255, 0, 0), font=font)
