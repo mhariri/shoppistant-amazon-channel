@@ -52,3 +52,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+*.iml
+.idea
+.DS_Store
