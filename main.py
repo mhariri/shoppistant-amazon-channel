@@ -69,10 +69,11 @@ class MainHandler(webapp2.RequestHandler):
         self.response.headers["Cache-Control"] = "public, max-age=%d" % EXPIRATION_IN_SECONDS
 
     def send_rating_image(self, rating):
+        rating="4.6"
         img = Image.open("rating_background.png")
         draw = ImageDraw.Draw(img)
         w, _ = draw.textsize(rating)
-        draw.text((25 - w/2, 4), rating, (250, 153, 26), font=rating_font)
+        draw.text((23 - w/2, 4), rating, (250, 153, 26), font=rating_font)
         draw.text((20, 25), "of 5", (225, 129, 37), font=rating_footer_font)
         self.response.content_type = "image/png"
         img.save(self.response, "PNG")
