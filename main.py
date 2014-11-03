@@ -51,7 +51,7 @@ class MainHandler(webapp2.RequestHandler):
             else:
                 request = urllib2.Request(url, None, {'Referrer': 'http://shoppistant.com'})
                 response = urllib2.urlopen(request)
-                m = re.search("alt=\"(.*) out of 5 stars\"", response.read())
+                m = re.search("(\d*\.?\d*) out of 5 stars", response.read())
                 if m:
                     self.send_rating_image(m.group(1))
                 else:
