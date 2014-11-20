@@ -1,10 +1,11 @@
 import json
-import os
 import re
 import urllib2
 import datetime
-import webapp2
 from PIL import Image, ImageDraw, ImageFont
+import logging
+
+import webapp2
 
 
 PLUGIN_INFO = {
@@ -15,7 +16,6 @@ PLUGIN_INFO = {
 EXPIRATION_IN_SECONDS = 2 * 24 * 60 * 60
 rating_font = ImageFont.truetype("Roboto-Bold.ttf", 18)
 rating_footer_font = ImageFont.truetype("Roboto-Bold.ttf", 9)
-
 
 
 class GMT(datetime.tzinfo):
@@ -49,14 +49,21 @@ class MainHandler(webapp2.RequestHandler):
             if open_details:
                 self.redirect(str(url))
             else:
-                request = urllib2.Request(url, None, {'Referrer': 'http://shoppistant.com'})
-                response = urllib2.urlopen(request)
-                m = re.search("(\d*\.?\d*) out of 5 stars", response.read())
-                if m:
-                    self.send_rating_image(m.group(1))
-                else:
-                    self.response.write("Not found")
-                    self.response.status = 404
+                try:
+                    request = urllib2.Request(url, None, {'Referrer': 'http://shoppistant.com'})
+                    response = urllib2.urlopen(request)
+                    m = re.search("(\d*\.?\d*) out of 5 stars", response.read())
+                    if m:
+                        self.send_rating_image(m.group(1))
+                except urllib2.HTTPError, e:
+                    # amazon sometimes blocks the request,
+                    # just log and ignore it silently
+                    error = "Error querying amazon: " + str(e)
+                    logging.error(error)
+                    self.response.write(error + "\n")
+
+                self.response.write("Not found")
+                self.response.status = 404
         else:
             self.response.content_type = "application/json"
             self.response.write(json.dumps(PLUGIN_INFO))
@@ -72,12 +79,12 @@ class MainHandler(webapp2.RequestHandler):
         img = Image.open("rating_background.png")
         draw = ImageDraw.Draw(img)
         w, _ = draw.textsize(rating)
-        draw.text((23 - w/2, 4), rating, (250, 153, 26), font=rating_font)
+        draw.text((23 - w / 2, 4), rating, (250, 153, 26), font=rating_font)
         draw.text((20, 25), "of 5", (225, 129, 37), font=rating_footer_font)
         self.response.content_type = "image/png"
         img.save(self.response, "PNG")
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
-], debug=True)
+                                  ('/', MainHandler)
+                              ], debug=True)
