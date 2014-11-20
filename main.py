@@ -9,7 +9,7 @@ import webapp2
 
 
 PLUGIN_INFO = {
-    "name": "Amazon product information"
+    "name": "Amazon product rating"
 }
 
 # cache for 2 days
