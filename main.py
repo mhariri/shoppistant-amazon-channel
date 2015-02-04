@@ -40,8 +40,6 @@ def get_expiration_stamp(seconds):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.set_default_headers()
-
         barcode = self.request.params.get("q", None)
         if barcode:
             url = "http://www.amazon.com/s/ref=nb_sb_noss?field-keywords=" + barcode
@@ -53,8 +51,12 @@ class MainHandler(webapp2.RequestHandler):
                     request = urllib2.Request(url, None, {'Referrer': 'http://shoppistant.com'})
                     response = urllib2.urlopen(request)
                     m = re.search("(\d*\.?\d*) out of 5 stars", response.read())
+                    self.set_default_headers()
                     if m:
                         self.send_rating_image(m.group(1))
+                    else:
+                        self.response.write("Not found")
+                        self.response.status = 404
                 except urllib2.HTTPError, e:
                     # amazon sometimes blocks the request,
                     # just log and ignore it silently
@@ -62,8 +64,6 @@ class MainHandler(webapp2.RequestHandler):
                     logging.error(error)
                     self.response.write(error + "\n")
 
-                self.response.write("Not found")
-                self.response.status = 404
         else:
             self.response.content_type = "application/json"
             self.response.write(json.dumps(PLUGIN_INFO))
@@ -72,7 +72,6 @@ class MainHandler(webapp2.RequestHandler):
         # allow CORS
         self.response.headers.add_header("Access-Control-Allow-Origin", "*")
         self.response.headers["Expires"] = get_expiration_stamp(EXPIRATION_IN_SECONDS)
-        self.response.headers["Content-Type"] = "application/json"
         self.response.headers["Cache-Control"] = "public, max-age=%d" % EXPIRATION_IN_SECONDS
 
     def send_rating_image(self, rating):
